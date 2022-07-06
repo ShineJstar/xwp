@@ -1,4 +1,4 @@
-module github.com/mix-go/xwp
+module github.com/ShineJstar/xwp
 
 go 1.13
 

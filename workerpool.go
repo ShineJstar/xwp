@@ -26,12 +26,14 @@ type WorkerPool struct {
 	InitWorkers int
 	// default == InitWorkers
 	MaxIdleWorkers int
+	IdleTimeout time.Duration
 
 	RunF func(data interface{})
 	RunI RunI
 
 	workers         *sync.Map
 	workerCount     int64
+	activeCount     int64
 	workerQueuePool chan JobQueue
 	wg              *sync.WaitGroup
 	quit            chan bool
@@ -53,6 +55,9 @@ func (t *WorkerPool) init() {
 	}
 	if t.MaxIdleWorkers == 0 {
 		t.MaxIdleWorkers = t.InitWorkers
+	}
+	if t.IdleTimeout == 0 {
+		t.IdleTimeout = 5 * time.Second
 	}
 
 	t.workers = &sync.Map{}
@@ -140,8 +145,9 @@ type Statistic struct {
 func (t *WorkerPool) Stats() *Statistic {
 	total := int(t.workerCount)
 	idle := len(t.workerQueuePool)
+	active := int(atomic.LoadInt64(&t.activeCount))
 	return &Statistic{
-		Active: total - idle,
+		Active: active,
 		Idle:   idle,
 		Total:  total,
 	}

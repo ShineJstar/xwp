@@ -23,10 +23,14 @@ func NewWorker(p *WorkerPool) *Worker {
 		pool: p,
 		handler: func(data interface{}) {
 			if p.RunF != nil {
+				atomic.AddInt64(&p.activeCount, 1)
 				p.RunF(data)
+				atomic.AddInt64(&p.activeCount, -1)
 			} else if p.RunI != nil {
+				atomic.AddInt64(&p.activeCount, 1)
 				i := p.RunI
 				i.Do(data)
+				atomic.AddInt64(&p.activeCount, -1)
 			}
 		},
 		jobChan: make(chan interface{}),
@@ -60,7 +64,7 @@ func (t *Worker) Run() {
 					return
 				}
 				t.handler(data)
-				tr := time.NewTimer(5 * time.Second)
+				tr := time.NewTimer(t.pool.IdleTimeout)
 				select {
 				case t.pool.workerQueuePool <- t.jobChan:
 				case <-tr.C:
