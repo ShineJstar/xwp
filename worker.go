@@ -22,16 +22,18 @@ func NewWorker(p *WorkerPool) *Worker {
 	return &Worker{
 		pool: p,
 		handler: func(data interface{}) {
-			if p.RunF != nil {
-				atomic.AddInt64(&p.activeCount, 1)
+			atomic.AddInt64(&p.activeCount, 1)
+			if f, ok := data.(RunF); ok {
+				f.Do()
+			} else if p.RunF != nil {
 				p.RunF(data)
-				atomic.AddInt64(&p.activeCount, -1)
 			} else if p.RunI != nil {
-				atomic.AddInt64(&p.activeCount, 1)
 				i := p.RunI
 				i.Do(data)
-				atomic.AddInt64(&p.activeCount, -1)
+			} else {
+				panic(fmt.Errorf("xwp.WorkerPool RunF & RunI field is empty"))
 			}
+			atomic.AddInt64(&p.activeCount, -1)
 		},
 		jobChan: make(chan interface{}),
 		quit:    make(chan bool),

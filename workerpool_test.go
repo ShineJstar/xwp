@@ -1,6 +1,7 @@
 package xwp
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"math/rand"
@@ -81,4 +82,43 @@ func TestStop(t *testing.T) {
 	}()
 
 	p.Run()
+}
+
+type TestWorkerRunF struct {
+	i int
+}
+
+func (tw *TestWorkerRunF) Do() {
+	time.Sleep(time.Second)
+	fmt.Println("序号", tw.i, "完成")
+}
+
+func TestRunF(t *testing.T) {
+	jobQueue := make(chan interface{}, 200)
+	p := &WorkerPool{
+		JobQueue:       jobQueue,
+		MaxWorkers:     100,
+		InitWorkers:    10,
+		MaxIdleWorkers: 10,
+		IdleTimeout:    10 * time.Second,
+	}
+
+	go func() {
+		time.Sleep(time.Second)
+		// 投放任务
+		for i := 0; i < 20; i++ {
+			tw := &TestWorkerRunF{i: i}
+			jobQueue <- tw
+		}
+
+		// 投放完停止调度
+		//p.Stop()
+	}()
+
+	p.Start()
+
+	for {
+		t.Log(time.Now(), p.Stats())
+		time.Sleep(500 * time.Millisecond)
+	}
 }

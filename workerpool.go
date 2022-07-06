@@ -1,7 +1,6 @@
 package xwp
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -14,6 +13,11 @@ type JobQueue chan interface{}
 // RunI
 type RunI interface {
 	Do(data interface{})
+}
+
+// RunF
+type RunF interface {
+	Do()
 }
 
 // WorkerPool 调度器
@@ -65,9 +69,9 @@ func (t *WorkerPool) init() {
 	t.wg = &sync.WaitGroup{}
 	t.quit = make(chan bool)
 
-	if t.RunF == nil && t.RunI == nil {
-		panic(fmt.Errorf("xwp.WorkerPool RunF & RunI field is empty"))
-	}
+	//if t.RunF == nil && t.RunI == nil {
+	//	panic(fmt.Errorf("xwp.WorkerPool RunF & RunI field is empty"))
+	//}
 }
 
 // Start 启动
