@@ -122,3 +122,35 @@ func TestRunF(t *testing.T) {
 		time.Sleep(500 * time.Millisecond)
 	}
 }
+
+func TestRunFunc(t *testing.T) {
+	jobQueue := make(chan interface{}, 200)
+	p := &WorkerPool{
+		JobQueue:       jobQueue,
+		MaxWorkers:     100,
+		InitWorkers:    10,
+		MaxIdleWorkers: 10,
+		IdleTimeout:    10 * time.Second,
+	}
+
+	go func() {
+		// 投放任务
+		for i := 0; i < 20; i++ {
+			tw := &TestWorkerRunF{i: i}
+			jobQueue <- RunFunc(func() {
+				time.Sleep(time.Second)
+				t.Log("序号", tw.i, "完成")
+			})
+		}
+
+		// 投放完停止调度
+		//p.Stop()
+	}()
+
+	p.Start()
+
+	for {
+		t.Log(time.Now(), p.Stats())
+		time.Sleep(500 * time.Millisecond)
+	}
+}

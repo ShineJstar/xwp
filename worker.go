@@ -23,7 +23,9 @@ func NewWorker(p *WorkerPool) *Worker {
 		pool: p,
 		handler: func(data interface{}) {
 			atomic.AddInt64(&p.activeCount, 1)
-			if f, ok := data.(RunF); ok {
+			if f, ok := data.(RunFunc); ok {
+				f()
+			} else if f, ok := data.(RunF); ok {
 				f.Do()
 			} else if p.RunF != nil {
 				p.RunF(data)

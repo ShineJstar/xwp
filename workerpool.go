@@ -20,6 +20,9 @@ type RunF interface {
 	Do()
 }
 
+// RunFunc
+type RunFunc func()
+
 // WorkerPool 调度器
 type WorkerPool struct {
 	JobQueue JobQueue
@@ -30,7 +33,7 @@ type WorkerPool struct {
 	InitWorkers int
 	// default == InitWorkers
 	MaxIdleWorkers int
-	IdleTimeout time.Duration
+	IdleTimeout    time.Duration
 
 	RunF func(data interface{})
 	RunI RunI
