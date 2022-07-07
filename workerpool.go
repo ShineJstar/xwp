@@ -151,11 +151,10 @@ type Statistic struct {
 // Stats 统计
 func (t *WorkerPool) Stats() *Statistic {
 	total := int(t.workerCount)
-	idle := len(t.workerQueuePool)
-	active := int(atomic.LoadInt64(&t.activeCount))
+	active := int(t.activeCount)
 	return &Statistic{
 		Active: active,
-		Idle:   idle,
+		Idle:   total - active,
 		Total:  total,
 	}
 }
